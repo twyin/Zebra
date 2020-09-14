@@ -13,7 +13,7 @@ export default class Home extends React.Component {
 
         <main>
           <h1 className="title">
-            Read <Link href="/rooms/1"><a>this page!</a></Link>
+            Zebra <Link href="/rooms/1"><a>this page!</a></Link>
           </h1>
 
           <p className="description">
