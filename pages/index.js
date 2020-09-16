@@ -1,7 +1,6 @@
 import Head from 'next/head'
 import Link from 'next/link'
 
-
 export default class Home extends React.Component {
   render() {
     return (
