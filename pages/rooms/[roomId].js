@@ -14,7 +14,6 @@ export async function getServerSideProps(context) {
     // .limit(3)
     .toArray();
 
-
   let props = {id};
   // Pass data to the page via props
   return { props: { 
@@ -32,7 +31,7 @@ export default class Room extends React.Component {
   }
 
   render() {
-    console.log("room ", this.props.rooms[0].url);
+    // console.log("room ", this.props.rooms[0].url);
     return (
       <>
         {this.props.isConnected ? (
@@ -44,8 +43,8 @@ export default class Room extends React.Component {
           </h2>
         )}
 
-        <h1>Room {this.props.rooms[0].url}</h1>
-        { this.props.rooms[0].participants.map(participant => {
+        <h1>Room {this.props.rooms[0]?.url}</h1>
+        { this.props.rooms[0]?.participants.map(participant => {
           return (<p>{participant.name}</p>)
         })}
         <h2>
