@@ -7,6 +7,26 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 
 export default class Home extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      symbol: "GOOG",
+      quantity: 24,
+    }
+  }
+  handleSubmit = async (event) => {
+    event.preventDefault();
+    alert("submitting")
+    let response = await fetch('/api/buy', {
+      method: 'POST', // or 'PUT'
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(this.state),
+    });
+    let data = await response.json()
+    return data;
+  }
   render() {
     return (
       <Container>
@@ -24,7 +44,7 @@ export default class Home extends React.Component {
             Get started by editing <code>pages/index.js</code>
           </p>
 
-          <Form>
+          <Form onSubmit={this.handleSubmit}>
             <Form.Group controlId="formGroupEmail">
               <Form.Label>Room</Form.Label>
               <Form.Control type="text" placeholder="Enter Room ID" />
