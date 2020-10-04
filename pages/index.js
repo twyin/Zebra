@@ -5,13 +5,29 @@ import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import { connectToDatabase } from '../util/mongodb';
+
+
+export async function getServerSideProps(context) {
+  const { client, db } = await connectToDatabase()
+  const isConnected = await client.isConnected() // Returns true or false
+  const portfolio = await db.collection("portfolio").find({}, { name: 1, _id: 0 }).toArray();
+  console.log(portfolio);
+  return {
+    props: {
+      isConnected,
+      portfolio: JSON.parse(JSON.stringify(portfolio))
+    }
+  }
+}
+
 
 export default class Home extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       symbol: "GOOG",
-      quantity: 24,
+      quantity: 1,
     }
   }
   handleSubmit = async (event) => {
@@ -57,9 +73,15 @@ export default class Home extends React.Component {
               <Button type="submit">Enter room</Button>
             </Form.Group>
           </Form>
-
-
-
+          {
+            this.props.portfolio.map((element) => {
+              return (
+                <div>
+                  {element.name + ' - ' + element.quantity}
+                </div>
+              );
+            })
+          }
         </main>
       </Container>
     )
