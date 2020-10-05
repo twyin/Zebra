@@ -52,7 +52,7 @@ export default class Home extends React.Component {
       return {
         symbol: x.name,
         quantity: x.quantity,
-        price: 100,
+        price: 0,
       };
     })
     console.log(portfolio)
@@ -61,7 +61,7 @@ export default class Home extends React.Component {
       portfolio: portfolio,
       purchase_symbol: "",
       purchase_input: undefined,
-      purchase_price: 100,
+      purchase_price: 0,
       purchase_mode: "SHARES", // DOLLARS, SHARES
     };
   }
@@ -95,11 +95,25 @@ export default class Home extends React.Component {
     this.setState({purchase_symbol: event.target.value});
   }
 
+  handlePurchaseSymbolBlur = (event) => {
+    this.getLastPrice(event.target.value).then(last_price => 
+      this.setState({purchase_price: last_price})
+    );
+  }
+
+  getLastPrice = async (symbol) => {
+    let response = await fetch('https://finnhub.io/api/v1/quote?token=btt77bn48v6q0kg1na2g&symbol='+symbol, {
+      method: 'GET'
+    });
+    let data = await response.json();
+    return data.c;
+  }
+
   handlePurchaseInputChange = (event) => {
     this.setState({purchase_input: event.target.value});
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     const socket = new WebSocket('wss://ws.finnhub.io?token=btt77bn48v6q0kg1na2g');
 
     // Connection opened -> Subscribe
@@ -110,25 +124,35 @@ export default class Home extends React.Component {
     });
     
     // Listen for messages
-    socket.addEventListener('message', function (event) {
-        console.log('Message from server ', event.data);
-        if (event.type === "trade") {
-          const trade = event.data[0];
+    socket.addEventListener('message', (event) => {
+        // console.log('Message from server ', event.data);
+        let message = JSON.parse(event.data);
+        console.log(message);
+        if (message.type === "trade") {
+          const trade = message.data[0];
           const new_symbol = trade.s;
           const new_price = trade.p;
           this.setState((state, props) => {
             const portfolio = state.portfolio.map(holding => {
               let {symbol, quantity} = holding;
-              return new_symbol === symbol ? {symbol, quantity, new_price} : holding;
+              return new_symbol === symbol ? {symbol, quantity, price: new_price} : holding;
             });
             return {portfolio};
           });
         }
     });
     this.socket = socket;
+    const portfolio = await Promise.all(this.state.portfolio.map(async (holding) => {
+      let {symbol, quantity} = holding;
+      let last_price = await this.getLastPrice(symbol);
+      return {symbol, quantity, price: last_price};
+    }));
+    this.setState({portfolio});
   }
+
   render() {
     let {balance, portfolio, purchase_mode, purchase_symbol, purchase_input, purchase_price} = this.state;
+    let portfolio_value = portfolio.map(x => x.price * x.quantity).reduce((a, b) => a+b);
     return (
       <>
         <div style={{flexGrow: 1}}>
@@ -149,11 +173,11 @@ export default class Home extends React.Component {
             <Grid item xs={8}>
               <Paper style={{padding: 10}}>
                 <h3 style={{marginTop: 0, marginBottom: 0}}>Portfolio</h3>
-                <h1 style={{textAlign: "center"}}>$420,690</h1>
+                <h1 style={{textAlign: "center"}}>${this.displayCurrency(portfolio_value)}</h1>
               </Paper>
               <Paper style={{padding: 10, marginTop: 20}}>
                 <h3 style={{marginTop: 0, marginBottom: 0}}>Cash Balance</h3>
-                <h1 style={{textAlign: "center"}}>${balance}</h1>
+                <h1 style={{textAlign: "center"}}>${this.displayCurrency(balance)}</h1>
               </Paper>
             </Grid>
             <Grid item xs={4}>
@@ -168,11 +192,12 @@ export default class Home extends React.Component {
                       value={purchase_symbol}
                       style={{width: "100%"}}
                       onChange={this.handlePurchaseSymbolChange}
+                      onBlur={this.handlePurchaseSymbolBlur}
                     />
                   </Grid>
                   <Grid item xs={6} style={{display: "flex", alignItems: "center"}}>
                     <Typography variant="subtitle1">
-                      Price: ${purchase_price}
+                      Price: ${this.displayCurrency(purchase_price)}
                     </Typography>
                   </Grid>
                   <Grid item xs={6} style={{display: "flex", justifyContent: "center"}}>
@@ -185,7 +210,7 @@ export default class Home extends React.Component {
                     </FormControl>
                   </Grid>
                   <Grid item xs={6}>
-                    <TextField
+                    <TextField  
                       id="outlined-secondary"
                       label="Amount"
                       variant="outlined"
@@ -221,8 +246,8 @@ export default class Home extends React.Component {
                       {row.symbol}
                     </TableCell>
                     <TableCell align="right">{row.quantity}</TableCell>
-                    <TableCell align="right">${row.price}</TableCell>
-                    <TableCell align="right">${row.price * row.quantity}</TableCell>
+                    <TableCell align="right">${this.displayCurrency(row.price)}</TableCell>
+                    <TableCell align="right">${this.displayCurrency(row.price * row.quantity)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -231,5 +256,10 @@ export default class Home extends React.Component {
         </Container>
       </>
     )
+  }
+
+  // Helpers
+  displayCurrency(x) {
+    return x.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
 }
