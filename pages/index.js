@@ -67,8 +67,8 @@ export default class Home extends React.Component {
     const {purchase_input, purchase_mode, purchase_symbol, purchase_price} = this.state;
     const purchase = {
       symbol: purchase_symbol,
-      quantity: purchase_mode === "SHARES" ? purchase_input : purchase_input / purchase_price,
-      price: purchase_price,
+      quantity: parseFloat(purchase_mode === "SHARES" ? purchase_input : purchase_input / purchase_price),
+      price: parseFloat(purchase_price),
     }
     alert("submitting: "+purchase_mode)
     console.log(purchase);
@@ -92,7 +92,7 @@ export default class Home extends React.Component {
   }
 
   handlePurchaseInputChange = (event) => {
-    this.setState({purchase_input: parseFloat(event.target.value)});
+    this.setState({purchase_input: event.target.value});
   }
 
   componentDidMount() {
