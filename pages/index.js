@@ -26,8 +26,9 @@ export default class Home extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      symbol: "GOOG",
+      symbol: "TRY",
       quantity: 1,
+      price: 2
     }
   }
   handleSubmit = async (event) => {

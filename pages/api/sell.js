@@ -11,38 +11,38 @@ export default async (req, res) => {
 
     const balanceCollection = await db.collection("balance").find({}, { balance: 1, _id: 0 }).toArray();
     let balance = balanceCollection[0]['balance'];
-    if (shares * price > balance) {
-        res.statusCode = 418;
-        res.setHeader('Content-Type', 'application/json')
-        res.end(JSON.stringify({ name: 'John Doe' }));
-        return;
-    }
+
     const portfolio = await db
     .collection("portfolio")
     .find({ name: stock })
     .toArray()
     ;
-    console.log("previously had: ", portfolio[0] ? portfolio[0]['quantity'] : 'null');
+    let currentQuantity = portfolio[0]['quantity'];
     if (portfolio.length) {
-        db.collection("portfolio").updateOne(
-            { name: stock },
+        if (shares >= currentQuantity) {
+            db.collection("portfolio").remove(
+                { name: stock }, true
+            )
+        } else {
+            db.collection("portfolio").updateOne(
+                { name: stock },
+                {
+                    $set: { quantity: currentQuantity - shares },
+                }
+            )
+        }
+        db.collection("balance").updateOne(
+            { name: "balance" },
             {
-                $set: { quantity: portfolio[0]['quantity'] + shares },
+                $set: { balance: balance + Math.min(currentQuantity, shares) * price}
             }
         )
     } else {
-        try {
-            db.collection("portfolio").insertOne({ name: stock, quantity: shares });
-        } catch (e) {
-            console.log("insert fail");
-        };
+        res.statusCode = 418;
+        res.setHeader('Content-Type', 'application/json')
+        res.end(JSON.stringify({ name: 'John Doe' }));
+        return;
     }
-    db.collection("balance").updateOne(
-        { name: "balance" },
-        {
-            $set: { balance: balance - shares * price}
-        }
-    )
     res.statusCode = 200
     res.setHeader('Content-Type', 'application/json')
     res.end(JSON.stringify({ name: 'John Doe' }))
