@@ -31,11 +31,14 @@ export async function getServerSideProps(context) {
   const { client, db } = await connectToDatabase()
   const isConnected = await client.isConnected() // Returns true or false
   const portfolio = await db.collection("portfolio").find({}, { name: 1, _id: 0 }).toArray();
+  const balances = await db.collection("balance").find({}).toArray();
   console.log(portfolio);
+  console.log(balances);
   return {
     props: {
       isConnected,
-      portfolio: JSON.parse(JSON.stringify(portfolio))
+      portfolio: JSON.parse(JSON.stringify(portfolio)),
+      balance: balances[0].balance,
     }
   }
 }
@@ -54,6 +57,7 @@ export default class Home extends React.Component {
     })
     console.log(portfolio)
     this.state = {
+      balance: props.balance,
       portfolio: portfolio,
       purchase_symbol: "",
       purchase_input: undefined,
@@ -124,7 +128,7 @@ export default class Home extends React.Component {
     this.socket = socket;
   }
   render() {
-    let {portfolio, purchase_mode, purchase_symbol, purchase_input, purchase_price} = this.state;
+    let {balance, portfolio, purchase_mode, purchase_symbol, purchase_input, purchase_price} = this.state;
     return (
       <>
         <div style={{flexGrow: 1}}>
@@ -146,6 +150,10 @@ export default class Home extends React.Component {
               <Paper style={{padding: 10}}>
                 <h3 style={{marginTop: 0, marginBottom: 0}}>Portfolio</h3>
                 <h1 style={{textAlign: "center"}}>$420,690</h1>
+              </Paper>
+              <Paper style={{padding: 10, marginTop: 20}}>
+                <h3 style={{marginTop: 0, marginBottom: 0}}>Cash Balance</h3>
+                <h1 style={{textAlign: "center"}}>${balance}</h1>
               </Paper>
             </Grid>
             <Grid item xs={4}>
