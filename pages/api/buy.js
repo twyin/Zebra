@@ -48,11 +48,11 @@ export default async (req, res) => {
         db.collection("balance").updateOne(
             { name: "balance" },
             {
-                $set: { balance: newBalance}
+                $set: { balance: 5211314}
             }
         )
     } catch (e) {
-        console.log("e: ", e);
+        throw e;
     }
 
     console.log("new bal: ", balance - shares * price);
