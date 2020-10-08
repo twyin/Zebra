@@ -41,14 +41,14 @@ export default async (req, res) => {
             console.log("insert fail");
         };
     }
-    db.colleciton("transactionHistory").insert({name: stock, quantity: share, timeStamp});
+    // db.collection("transactionHistory").insert({name: stock, quantity: shares});
     console.log("old bal: ", balance);
-    db.collection("balance").updateOne(
-        { name: "balance" },
-        {
-            $set: { balance: balance - shares * price}
-        }
-    )
+    // db.collection("balance").updateOne(
+    //     { name: "balance" },
+    //     {
+    //         $set: { balance: balance - shares * price}
+    //     }
+    // )
     console.log("new bal: ", balance - shares * price);
 
     res.statusCode = 200
