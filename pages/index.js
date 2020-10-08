@@ -162,7 +162,7 @@ export default class Home extends React.Component {
                       <ShowChartIcon />
                   </IconButton>
                   <Typography variant="h6" style={{flexGrow: 1}}>
-                      Bobinhood
+                      Bobinhood 1.0
                   </Typography>
               </Toolbar>
           </AppBar>
