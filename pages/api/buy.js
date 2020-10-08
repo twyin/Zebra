@@ -43,12 +43,18 @@ export default async (req, res) => {
     }
     // db.collection("transactionHistory").insert({name: stock, quantity: shares});
     console.log("old bal: ", balance);
-    // db.collection("balance").updateOne(
-    //     { name: "balance" },
-    //     {
-    //         $set: { balance: balance - shares * price}
-    //     }
-    // )
+    var newBalance = balance - shares * price;
+    try {
+        db.collection("balance").updateOne(
+            { name: "balance" },
+            {
+                $set: { balance: newBalance}
+            }
+        )
+    } catch (e) {
+        console.log("e: ", e);
+    }
+
     console.log("new bal: ", balance - shares * price);
 
     res.statusCode = 200
