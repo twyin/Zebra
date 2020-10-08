@@ -6,10 +6,13 @@ export default async (req, res) => {
     let shares = req['body']['quantity'];
     let price = req['body']['price'];
 
-    const { client, db } = await connectToDatabase()
-    const isConnected = await client.isConnected() // Returns true or false
+    console.log("start");
+    const { client, db } = await connectToDatabase();
+    console.log("1");
+    const isConnected = await client.isConnected(); // Returns true or false
 
     const balanceCollection = await db.collection("balance").find({}, { balance: 1, _id: 0 }).toArray();
+    console.log("2");
     let balance = balanceCollection[0]['balance'];
     if (shares * price > balance) {
         res.statusCode = 418;
@@ -30,6 +33,7 @@ export default async (req, res) => {
                 $set: { quantity: portfolio[0]['quantity'] + shares },
             }
         )
+        console.log("insert yes");
     } else {
         try {
             db.collection("portfolio").insertOne({ name: stock, quantity: shares });
@@ -37,12 +41,16 @@ export default async (req, res) => {
             console.log("insert fail");
         };
     }
+    db.colleciton("transactionHistory").insert({name: stock, quantity: share, timeStamp});
+    console.log("old bal: ", balance);
     db.collection("balance").updateOne(
         { name: "balance" },
         {
             $set: { balance: balance - shares * price}
         }
     )
+    console.log("new bal: ", balance - shares * price);
+
     res.statusCode = 200
     res.setHeader('Content-Type', 'application/json')
     res.end(JSON.stringify({ name: 'John Doe' }))
